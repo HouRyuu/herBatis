@@ -1,0 +1,2 @@
+# herBatis
+MyBatisをより深く理解するため、このリポジトリでMyBatisを真似て原理を分かっていく
