@@ -1,12 +1,21 @@
 package jp.ac.jec.herBatis.session;
 
+import jp.ac.jec.herBatis.cfg.Configuration;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public class DefaultSQLSessionFactory implements SQLSessionFactory {
 
-    private final DataSource dataSource;
+    private DataSource dataSource;
+
+    private Configuration configuration;
+
+
+    public DefaultSQLSessionFactory(Configuration configuration) {
+        this.configuration = configuration;
+    }
 
     public DefaultSQLSessionFactory(DataSource dataSource) {
         this.dataSource = dataSource;
@@ -15,6 +24,11 @@ public class DefaultSQLSessionFactory implements SQLSessionFactory {
     @Override
     public SQLSession openSession() {
         return openSessionFromDataSource(dataSource, true);
+    }
+
+    @Override
+    public SQLSession openSessionWithConfiguration() {
+        return new DefaultSQLSession(configuration);
     }
 
     @Override

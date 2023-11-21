@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <!--配置环境-->
+    <environments default="mysql">
+        <environment id="mysql">
+            <!--配置事务类型-->
+            <transactionManager type="JDBC"/>
+            <!--配置数据源-->
+            <dataSource type="POOLED">
+                <!--配置连接数据库的信息-->
+                <property name="driver" value="org.mariadb.jdbc.Driver"/>
+                <property name="url" value="jdbc:mariadb://10.64.144.5:3306/22jy0140"/>
+                <property name="username" value="22jy0140"/>
+                <property name="password" value="22jy0140"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+
+    <mappers>
+        <!-- 指定映射配置文件的位置，映射配置文件指的时每个dao独立的配置文件-->
+        <!--        <mapper resource="com/mybatis/dao/IUserDao.xml"></mapper>-->
+        <!-- 如果使用注解来配置，此处应该使用class属性指定被注解的dao全限定类名-->
+        <mapper class="jp.ac.jec.mapper.UserMapper"/>
+    </mappers>
+</configuration>

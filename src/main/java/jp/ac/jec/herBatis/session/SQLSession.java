@@ -6,4 +6,5 @@ public interface SQLSession extends Closeable {
 
     <T> T getMapper(Class<T> type);
 
+    void commit();
 }

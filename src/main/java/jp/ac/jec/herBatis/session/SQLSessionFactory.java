@@ -15,6 +15,8 @@ public interface SQLSessionFactory {
      */
     SQLSession openSession();
 
+    SQLSession openSessionWithConfiguration();
+
     /**
      * トランザクションがコントロールできるSQLSessionを生産する
      *
