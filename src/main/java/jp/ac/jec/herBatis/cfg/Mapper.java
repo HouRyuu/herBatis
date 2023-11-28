@@ -1,5 +1,8 @@
 package jp.ac.jec.herBatis.cfg;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Mapper {
 
     /**
@@ -9,7 +12,8 @@ public class Mapper {
     private String querySQL;
     // 結果のクラス名
     private String resultClass;
-    private String genericClass;
+
+    private List<Object> params = new ArrayList<>();
 
     public Class<?> getSqlTypeClass() {
         return sqlTypeClass;
@@ -35,11 +39,11 @@ public class Mapper {
         this.resultClass = resultClass;
     }
 
-    public String getGenericClass() {
-        return genericClass;
+    public void addParam(Object param) {
+        this.params.add(param);
     }
 
-    public void setGenericClass(String genericClass) {
-        this.genericClass = genericClass;
+    public List<Object> getParams() {
+        return params;
     }
 }

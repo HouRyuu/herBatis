@@ -13,16 +13,17 @@ public class SelectExecutor implements Executor {
     public Object execute(Mapper mapper, Connection conn) {
         String querySql = mapper.getQuerySQL();
         String resultClassName = mapper.getResultClass();
-        String genericClassName = mapper.getGenericClass();
         ResultSet rs = null;
         try (PreparedStatement preparedStatement = conn.prepareStatement(querySql)) {
+            for (int i = 0; i < mapper.getParams().size(); i++) {
+                preparedStatement.setObject(i + 1, mapper.getParams().get(i));
+            }
             Class<?> domainClass = Class.forName(resultClassName);
-            Class<?> genericClass = StringUtils.isBlank(genericClassName) ? null : Class.forName(mapper.getGenericClass());
             rs = preparedStatement.executeQuery();
 
             List<Object> result = new ArrayList<>();
             while (rs.next()) {
-                Object obj = (genericClass == null ? domainClass : genericClass).newInstance();
+                Object obj = domainClass.newInstance();
                 ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
                 for (int i = 1; i <= columnCount; i++) {
@@ -31,9 +32,6 @@ public class SelectExecutor implements Executor {
                     PropertyDescriptor pd = new PropertyDescriptor(columnName, obj.getClass());
                     Method writeMethod = pd.getWriteMethod();
                     writeMethod.invoke(obj, columnValue);
-                }
-                if (genericClass == null) {
-                    return obj;
                 }
                 result.add(obj);
             }

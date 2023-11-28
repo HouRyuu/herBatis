@@ -12,14 +12,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-public class Main {
+public class AnnotationTest {
     private InputStream in;
     private SQLSession session;
 
     @BeforeEach
     public void init() {
         // 1.資源ファイルを読み込む
-        in = Resources.getResourceAsStream("SqlMapConfig.xml");
+        in = Resources.getResourceAsStream("herBatis/SqlMapConfig.xml");
         // 2.SqlSessionFactory工場を作る
         SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
         SQLSessionFactory factory = builder.build(in);
@@ -29,9 +29,9 @@ public class Main {
 
     @AfterEach
     public void destroy() throws IOException {
+        in.close();
         session.commit();
         session.close();
-        in.close();
     }
 
     @Test
@@ -45,6 +45,13 @@ public class Main {
         for (UserPO user : users) {
             System.out.println(user);
         }
+    }
+
+    @Test
+    void getById() {
+        // 4.SqlSessionでmapperインタフェースの代理実現を生成する
+        UserMapper userMapper = session.getMapper(UserMapper.class);
+        assert userMapper.getById(2).getId() == 2;
     }
 
     @Test

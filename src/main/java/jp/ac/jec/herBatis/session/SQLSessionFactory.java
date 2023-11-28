@@ -15,7 +15,20 @@ public interface SQLSessionFactory {
      */
     SQLSession openSession();
 
+    /**
+     * databaseコンフィグxmlファイルでsessionを生産する
+     *
+     * @return SQLSession
+     */
     SQLSession openSessionWithConfiguration();
+
+    /**
+     * databaseコンフィグxmlファイルでsessionを生産する
+     *
+     * @param autoCommit 自動コミットするかどうか(xmlより優先度が高い)
+     * @return SQLSession
+     */
+    SQLSession openSessionWithConfiguration(boolean autoCommit);
 
     /**
      * トランザクションがコントロールできるSQLSessionを生産する

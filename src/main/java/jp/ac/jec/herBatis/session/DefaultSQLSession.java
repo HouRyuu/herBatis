@@ -19,6 +19,16 @@ public class DefaultSQLSession implements SQLSession {
         connection = DataSourceUtils.getConnection(configuration);
     }
 
+    public DefaultSQLSession(Configuration configuration, boolean autoCommit) {
+        this.configuration = configuration;
+        connection = DataSourceUtils.getConnection(configuration);
+        try {
+            connection.setAutoCommit(autoCommit);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public DefaultSQLSession(Connection connection) {
         this.connection = connection;
     }

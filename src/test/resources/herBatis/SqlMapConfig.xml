@@ -12,15 +12,16 @@
                 <property name="url" value="jdbc:mariadb://10.64.144.5:3306/22jy0140"/>
                 <property name="username" value="22jy0140"/>
                 <property name="password" value="22jy0140"/>
+                <property name="autoCommit" value="false"/>
             </dataSource>
         </environment>
     </environments>
 
 
     <mappers>
-        <!-- 指定映射配置文件的位置，映射配置文件指的时每个dao独立的配置文件-->
-        <!--        <mapper resource="com/mybatis/dao/IUserDao.xml"></mapper>-->
-        <!-- 如果使用注解来配置，此处应该使用class属性指定被注解的dao全限定类名-->
+        <!-- annotationのSQL -->
         <mapper class="jp.ac.jec.mapper.UserMapper"/>
+        <!--mapper xmlファイル-->
+        <mapper resource="herBatis/mapper/UserMapper.xml"/>
     </mappers>
 </configuration>

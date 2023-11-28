@@ -138,7 +138,8 @@ public class XmlUtils {
                             annotationPresent = method.isAnnotationPresent(Select.class);
                     if (!insertAnnotationPresent && !deleteAnnotationPresent
                             && !updateAnnotationPresent && !annotationPresent) {
-                        throw new RuntimeException("MapperのメソッドにInsert・Delete・Delete・Selectのアノテーションが見つかりませんでした");
+                        // throw new RuntimeException("MapperのメソッドにInsert・Delete・Delete・Selectのアノテーションが見つかりませんでした");
+                        continue;
                     }
                     Mapper mapper = new Mapper();
                     String querySql = insertAnnotationPresent ? method.getAnnotation(Insert.class).value()
@@ -156,7 +157,7 @@ public class XmlUtils {
                         // ジェネリックの実のクラスを取得（List<User>：User）
                         Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
                         Class<?> domainClass = (Class<?>) actualTypeArguments[0];
-                        mapper.setGenericClass(domainClass.getName());
+                        mapper.setResultClass(domainClass.getName());
                     }
                     String methodName = method.getName();
                     String className = method.getDeclaringClass().getName();

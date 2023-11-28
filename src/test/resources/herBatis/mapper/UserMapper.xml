@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mapper namespace="jp.ac.jec.mapper.UserMapper">
+    <select id="xmlGet" resultType="jp.ac.jec.entity.UserPO">
+        SELECT * FROM t_user LIMIT 1
+    </select>
+
+    <select id="xmlFindAll" resultType="jp.ac.jec.entity.UserPO">
+        SELECT * FROM t_user
+    </select>
+
+    <insert id="xmlInsert">
+        INSERT INTO t_user VALUES (6, '中村')
+    </insert>
+
+    <delete id="xmlDelete">
+        DELETE FROM t_user WHERE id=6
+    </delete>
+
+    <update id="xmlUpdate">
+        UPDATE t_user SET name='田村' WHERE id=6
+    </update>
+</mapper>

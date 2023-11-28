@@ -31,6 +31,10 @@ public class DefaultSQLSessionFactory implements SQLSessionFactory {
         return new DefaultSQLSession(configuration);
     }
 
+    public SQLSession openSessionWithConfiguration(boolean autoCommit) {
+        return new DefaultSQLSession(configuration, autoCommit);
+    }
+
     @Override
     public SQLSession openSession(boolean autoCommit) {
         return openSessionFromDataSource(dataSource, autoCommit);

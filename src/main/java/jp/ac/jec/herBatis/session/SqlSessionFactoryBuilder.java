@@ -10,7 +10,7 @@ import java.io.InputStream;
  */
 public class SqlSessionFactoryBuilder {
     public SQLSessionFactory build(InputStream inputStream) {
-        Configuration configuration = null;
+        Configuration configuration;
         try {
             configuration = XmlUtils.loadXMLConfiguration(inputStream);
         } catch (Exception e) {

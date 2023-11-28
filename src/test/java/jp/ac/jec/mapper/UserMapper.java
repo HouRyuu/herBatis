@@ -10,6 +10,9 @@ public interface UserMapper {
     @Select("SELECT * FROM t_user LIMIT 1")
     UserPO get();
 
+    @Select("SELECT * FROM t_user WHERE id = #{id}")
+    UserPO getById(@Param("id") int id);
+
     @Select("SELECT * FROM t_user")
     List<UserPO> findAll();
 
@@ -21,4 +24,15 @@ public interface UserMapper {
 
     @Update("UPDATE t_user SET name='田村' WHERE id=6")
     int update();
+
+    UserPO xmlGet();
+
+    List<UserPO> xmlFindAll();
+
+    int xmlInsert();
+
+    boolean xmlDelete();
+
+    int xmlUpdate();
+
 }
