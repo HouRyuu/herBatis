@@ -2,7 +2,6 @@ package jp.ac.jec.herBatis.parsing;
 
 public class ParameterMapping {
 
-
     private String property;
 
     public ParameterMapping(String property) {

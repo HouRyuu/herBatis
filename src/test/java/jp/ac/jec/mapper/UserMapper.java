@@ -19,20 +19,38 @@ public interface UserMapper {
     @Insert("INSERT INTO t_user VALUES (6, '中村')")
     int insert();
 
+    @Insert("INSERT INTO t_user VALUES (#{id}, #{name}, #{birthday})")
+    int insertUser(UserPO user);
+
     @Delete("DELETE FROM t_user WHERE id=6")
     int delete();
+
+    @Delete("DELETE FROM t_user WHERE id=#{id}")
+    boolean deleteById(@Param("id") int id);
 
     @Update("UPDATE t_user SET name='田村' WHERE id=6")
     int update();
 
+    @Update("UPDATE t_user SET name=#{name},birthday=#{birthday} WHERE id=#{id}")
+    int updateById(UserPO user);
+
     UserPO xmlGet();
+
+    UserPO xmlGetById(@Param("id") int id);
 
     List<UserPO> xmlFindAll();
 
     int xmlInsert();
 
+    int xmlInsertUser(UserPO user);
+
     boolean xmlDelete();
 
+    boolean xmlDeleteById(@Param("id") int id);
+
     int xmlUpdate();
+
+    int xmlUpdateUser(UserPO user);
+
 
 }

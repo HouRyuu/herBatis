@@ -1,6 +1,9 @@
 package jp.ac.jec.herBatis.parsing;
 
 
+/**
+ * 文字列パーサ
+ */
 public class GenericTokenParser {
 
     private final String openToken;
@@ -13,11 +16,17 @@ public class GenericTokenParser {
         this.handler = handler;
     }
 
+    /**
+     * 文字列の中のプレースホルダーを指定された文字列に変換する
+     *
+     * @param text 元の文字列
+     * @return 変換された文字列
+     */
     public String parse(String text) {
         if (text == null || text.isEmpty()) {
             return "";
         }
-        // search open token
+        // openTokenを探す
         int start = text.indexOf(openToken);
         if (start == -1) {
             return text;

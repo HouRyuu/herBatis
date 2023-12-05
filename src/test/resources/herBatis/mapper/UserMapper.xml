@@ -8,15 +8,31 @@
         SELECT * FROM t_user
     </select>
 
+    <select id="xmlGetById" resultType="jp.ac.jec.entity.UserPO">
+        SELECT * FROM t_user WHERE id = #{id}
+    </select>
+
     <insert id="xmlInsert">
         INSERT INTO t_user VALUES (6, '中村')
+    </insert>
+
+    <insert id="xmlInsertUser">
+        INSERT INTO t_user VALUES (#{id}, #{name}, #{birthday})
     </insert>
 
     <delete id="xmlDelete">
         DELETE FROM t_user WHERE id=6
     </delete>
 
+    <delete id="xmlDeleteById">
+        DELETE FROM t_user WHERE id=#{id}
+    </delete>
+
     <update id="xmlUpdate">
         UPDATE t_user SET name='田村' WHERE id=6
     </update>
+
+    <update id="xmlUpdateUser">
+        UPDATE t_user SET name=#{name}, birthday=#{birthday} WHERE id=#{id}
+    </update>xmlUpdateUser
 </mapper>

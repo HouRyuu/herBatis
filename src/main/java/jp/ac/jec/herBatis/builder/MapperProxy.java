@@ -10,6 +10,8 @@ import jp.ac.jec.herBatis.parsing.GenericTokenParser;
 import jp.ac.jec.herBatis.parsing.ParameterHandler;
 import jp.ac.jec.herBatis.parsing.ParameterMapping;
 import jp.ac.jec.herBatis.parsing.ParameterMappingTokenHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -18,6 +20,8 @@ import java.sql.Connection;
 import java.util.*;
 
 public class MapperProxy implements InvocationHandler {
+
+    private static Logger LOGGER = LoggerFactory.getLogger(MapperProxy.class);
     private static final Map<Class<?>, Executor> SQL_EXECUTER_MAP = new HashMap<>();
 
     private final Map<String, Mapper> mappers;
@@ -36,7 +40,7 @@ public class MapperProxy implements InvocationHandler {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) {
+    public Object invoke(Object proxy, Method method, Object[] args) throws IllegalAccessException {
         String methodName = method.getName();
         String className = method.getDeclaringClass().getName();
         String key = className + "." + methodName;
@@ -44,14 +48,21 @@ public class MapperProxy implements InvocationHandler {
         if (null == mapper) {
             throw new RuntimeException("不法Mapper");
         }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("HerBatis SQL: {}", mapper.getQuerySQL());
+        }
+        // ユーザーが書いたSQLを解析する
         ParameterMappingTokenHandler tokenHandler = new ParameterMappingTokenHandler();
+        // プレースホルダーの首尾と代える文字列を指定して、変換しながら、引数を順次に取得する
         GenericTokenParser tokenParser = new GenericTokenParser("#{", "}", tokenHandler);
         mapper.setQuerySQL(tokenParser.parse(mapper.getQuerySQL()));
         Map<String, Object> paraMap = ParameterHandler.handler(method.getParameters(), args);
         for (ParameterMapping parameterMapping : tokenHandler.getParameterMappings()) {
             mapper.addParam(paraMap.get(parameterMapping.getProperty()));
         }
-        List<ParameterMapping> parameterMappings = tokenHandler.getParameterMappings();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("JDBC SQL: {}, parameter's length: {}", mapper.getQuerySQL(), mapper.getParams().size());
+        }
         Object result = SQL_EXECUTER_MAP.get(mapper.getSqlTypeClass()).execute(mapper, connection);
         if (mapper.getSqlTypeClass() == Select.class) {
             if (method.getGenericReturnType() instanceof ParameterizedType) {
