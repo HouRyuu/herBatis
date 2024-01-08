@@ -5,6 +5,8 @@ import jp.ac.jec.herBatis.annotation.Insert;
 import jp.ac.jec.herBatis.annotation.Select;
 import jp.ac.jec.herBatis.annotation.Update;
 import jp.ac.jec.herBatis.cfg.Configuration;
+import jp.ac.jec.herBatis.cfg.Foreach;
+import jp.ac.jec.herBatis.cfg.IfOGNL;
 import jp.ac.jec.herBatis.cfg.Mapper;
 import jp.ac.jec.herBatis.contants.SQLType;
 import org.dom4j.Attribute;
@@ -28,6 +30,39 @@ import java.util.Map;
 public class XmlUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtils.class);
+
+
+    private static class MainXMLConstant {
+        private static final String ENVIRONMENTS = "environments";
+        private static final String ENVIRONMENT = "environment";
+        private static final String DATA_SOURCE = "dataSource";
+        private static final String PROPERTY = "property";
+        private static final String NAME = "name";
+        private static final String VALUE = "value";
+        private static final String DRIVER = "driver";
+        private static final String URL = "url";
+        private static final String USERNAME = "username";
+        private static final String PASSWORD = "password";
+        private static final String AUTOCOMMIT = "autoCommit";
+    }
+
+    private static class MapperConstant {
+        public static final String MAPPERS = "mappers";
+        public static final String MAPPER = "mapper";
+        public static final String RESOURCE = "resource";
+        public static final String NAMESPACE = "namespace";
+        public static final String ID = "id";
+        public static final String RESULT_TYPE = "resultType";
+        public static final String IF = "if";
+        public static final String TEST = "test";
+        public static final String CLASS = "class";
+        public static final String FOREACH = "foreach";
+        public static final String COLLECTION = "collection";
+        public static final String OPEN = "open";
+        public static final String CLOSE = "close";
+        public static final String SEPARATOR = "separator";
+        public static final String DOT = ".";
+    }
 
     /**
      * メインコンフィグファイルを解析してConfigurationを生じる
@@ -57,22 +92,24 @@ public class XmlUtils {
      * @param configuration configuration
      */
     private static void loadMainXML(Element rootElement, Configuration configuration) {
-        Element dataSourceElement = rootElement.element("environments").element("environment").element("dataSource");
-        List<Element> properties = dataSourceElement.elements("property");
+        Element dataSourceElement = rootElement.element(MainXMLConstant.ENVIRONMENTS)
+                .element(MainXMLConstant.ENVIRONMENT)
+                .element(MainXMLConstant.DATA_SOURCE);
+        List<Element> properties = dataSourceElement.elements(MainXMLConstant.PROPERTY);
         String attributeName, attributeValue;
         for (Element element : properties) {
 
-            attributeName = element.attributeValue("name");
-            attributeValue = element.attributeValue("value");
-            if ("driver".equals(attributeName)) {
+            attributeName = element.attributeValue(MainXMLConstant.NAME);
+            attributeValue = element.attributeValue(MainXMLConstant.VALUE);
+            if (MainXMLConstant.DRIVER.equals(attributeName)) {
                 configuration.setDriver(attributeValue);
-            } else if ("url".equals(attributeName)) {
+            } else if (MainXMLConstant.URL.equals(attributeName)) {
                 configuration.setUrl(attributeValue);
-            } else if ("username".equals(attributeName)) {
+            } else if (MainXMLConstant.USERNAME.equals(attributeName)) {
                 configuration.setUsername(attributeValue);
-            } else if ("password".equals(attributeName)) {
+            } else if (MainXMLConstant.PASSWORD.equals(attributeName)) {
                 configuration.setPassword(attributeValue);
-            } else if ("autoCommit".equals(attributeName)) {
+            } else if (MainXMLConstant.AUTOCOMMIT.equals(attributeName)) {
                 configuration.setAutoCommit(Boolean.parseBoolean(attributeValue));
             }
         }
@@ -87,13 +124,13 @@ public class XmlUtils {
      * @throws ClassNotFoundException
      */
     private static void loadMapperXML(Element rootElement, Configuration configuration) throws DocumentException, ClassNotFoundException {
-        List<Element> mappers = rootElement.element("mappers").elements("mapper");
+        List<Element> mappers = rootElement.element(MapperConstant.MAPPERS).elements(MapperConstant.MAPPER);
         SAXReader reader = new SAXReader();
         for (Element mapperElement : mappers) {
 
             Map<String, Mapper> mapperMap = new HashMap<>();
 
-            Attribute resourceAttribute = mapperElement.attribute("resource");
+            Attribute resourceAttribute = mapperElement.attribute(MapperConstant.RESOURCE);
             // resource属性があればMapperのXMLを解析する。なければアノテーションを解析する
             if (null != resourceAttribute) {
                 if (LOGGER.isDebugEnabled()) {
@@ -105,19 +142,29 @@ public class XmlUtils {
                 Element mapperRootElement = reader.read(inputStream).getRootElement();
 
                 // <namespace>の値を取得
-                String namespace = mapperRootElement.attributeValue("namespace");
+                String namespace = mapperRootElement.attributeValue(MapperConstant.NAMESPACE);
                 List<Element> elements = mapperRootElement.elements();
                 Mapper mapper;
                 for (Element element : elements) {
                     mapper = new Mapper();
                     // MapperXMLの中のSQLのid,resultType,SQLを取得
                     String sqlType = element.getName();
-                    String id = element.attributeValue("id");
-                    String resultType = element.attributeValue("resultType");
-                    String querySql = element.getStringValue();
+                    String id = element.attributeValue(MapperConstant.ID);
+                    String resultType = element.attributeValue(MapperConstant.RESULT_TYPE);
+
+                    String querySql = element.getTextTrim();
                     mapper.setSqlTypeClass(SQLType.getAnnotationClass(sqlType));
                     mapper.setQuerySQL(querySql);
                     mapper.setResultClass(resultType);
+                    // ダイナミックSQL
+                    List<Element> ifElementList = element.elements(MapperConstant.IF);
+                    List<IfOGNL> ifList = ifElementList.stream().map(ifEle -> {
+                        IfOGNL ifOGNL = new IfOGNL(ifEle.attributeValue(MapperConstant.TEST), ifEle.getTextTrim());
+                        ifOGNL.setForeachList(parseForeach(ifEle));
+                        return ifOGNL;
+                    }).toList();
+                    mapper.setIfList(ifList);
+                    mapper.setForeachList(parseForeach(element));
                     // mapperをmapに入れる中。
                     String key = namespace + "." + id;
                     mapperMap.put(key, mapper);
@@ -126,7 +173,7 @@ public class XmlUtils {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("クラス名でのMapperクラスを解析し始める");
                 }
-                String classAttributeValue = mapperElement.attributeValue("class");
+                String classAttributeValue = mapperElement.attributeValue(MapperConstant.CLASS);
 
                 Class<?> aClass = Class.forName(classAttributeValue);
                 Method[] methods = aClass.getMethods();
@@ -152,8 +199,7 @@ public class XmlUtils {
                     // メソッドの戻り値のクラスを取得
                     Type genericReturnType = method.getGenericReturnType();
                     // ジェネリックであれば
-                    if (genericReturnType instanceof ParameterizedType) {
-                        ParameterizedType parameterizedType = (ParameterizedType) genericReturnType;
+                    if (genericReturnType instanceof ParameterizedType parameterizedType) {
                         // ジェネリックの実のクラスを取得（List<User>：User）
                         Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
                         Class<?> domainClass = (Class<?>) actualTypeArguments[0];
@@ -161,7 +207,7 @@ public class XmlUtils {
                     }
                     String methodName = method.getName();
                     String className = method.getDeclaringClass().getName();
-                    String key = className + "." + methodName;
+                    String key = className + MapperConstant.DOT + methodName;
                     mapperMap.put(key, mapper);
                 }
 
@@ -169,4 +215,13 @@ public class XmlUtils {
             configuration.setMapperMap(mapperMap);
         }
     }
+
+    private static List<Foreach> parseForeach(Element element) {
+        return element.elements(MapperConstant.FOREACH).stream().map(foreachEle ->
+                new Foreach(foreachEle.attributeValue(MapperConstant.COLLECTION),
+                        foreachEle.attributeValue(MapperConstant.OPEN),
+                        foreachEle.attributeValue(MapperConstant.CLOSE),
+                        foreachEle.attributeValue(MapperConstant.SEPARATOR))).toList();
+    }
+
 }

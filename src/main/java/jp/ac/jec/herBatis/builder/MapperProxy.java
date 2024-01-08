@@ -4,12 +4,17 @@ import jp.ac.jec.herBatis.annotation.Delete;
 import jp.ac.jec.herBatis.annotation.Insert;
 import jp.ac.jec.herBatis.annotation.Select;
 import jp.ac.jec.herBatis.annotation.Update;
+import jp.ac.jec.herBatis.cfg.Foreach;
+import jp.ac.jec.herBatis.cfg.IfOGNL;
 import jp.ac.jec.herBatis.cfg.Mapper;
 import jp.ac.jec.herBatis.excuter.*;
 import jp.ac.jec.herBatis.parsing.GenericTokenParser;
 import jp.ac.jec.herBatis.parsing.ParameterHandler;
 import jp.ac.jec.herBatis.parsing.ParameterMapping;
 import jp.ac.jec.herBatis.parsing.ParameterMappingTokenHandler;
+import ognl.Ognl;
+import ognl.OgnlException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +26,7 @@ import java.util.*;
 
 public class MapperProxy implements InvocationHandler {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(MapperProxy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MapperProxy.class);
     private static final Map<Class<?>, Executor> SQL_EXECUTER_MAP = new HashMap<>();
 
     private final Map<String, Mapper> mappers;
@@ -40,7 +45,7 @@ public class MapperProxy implements InvocationHandler {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws IllegalAccessException {
+    public Object invoke(Object proxy, Method method, Object[] args) throws IllegalAccessException, OgnlException {
         String methodName = method.getName();
         String className = method.getDeclaringClass().getName();
         String key = className + "." + methodName;
@@ -51,12 +56,31 @@ public class MapperProxy implements InvocationHandler {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("HerBatis SQL: {}", mapper.getQuerySQL());
         }
+        Map<String, Object> paraMap = ParameterHandler.handler(method.getParameters(), args);
+        StringBuilder sqlSb = new StringBuilder(mapper.getQuerySQL());
+        for (IfOGNL ifOGNL : mapper.getIfList()) {
+            if (Boolean.TRUE.equals(Ognl.getValue(Ognl.parseExpression(ifOGNL.getTestOgnl()), paraMap))) {
+                sqlSb.append(" ").append(ifOGNL.getSql());
+            }
+            for (Foreach foreach : ifOGNL.getForeachList()) {
+                List list = (ArrayList) paraMap.get(foreach.getCollection());
+                sqlSb.append(" ").append(foreach.getOpen())
+                        .append(StringUtils.join(list, foreach.getSeparator()))
+                        .append(foreach.getClose());
+            }
+        }
+        for (Foreach foreach : mapper.getForeachList()) {
+            List list = (ArrayList) paraMap.get(foreach.getCollection());
+            sqlSb.append(" ").append(foreach.getOpen())
+                    .append(StringUtils.join(list, foreach.getSeparator()))
+                    .append(foreach.getClose());
+        }
+        mapper.setQuerySQL(sqlSb.toString());
         // ユーザーが書いたSQLを解析する
         ParameterMappingTokenHandler tokenHandler = new ParameterMappingTokenHandler();
         // プレースホルダーの首尾と代える文字列を指定して、変換しながら、引数を順次に取得する
         GenericTokenParser tokenParser = new GenericTokenParser("#{", "}", tokenHandler);
         mapper.setQuerySQL(tokenParser.parse(mapper.getQuerySQL()));
-        Map<String, Object> paraMap = ParameterHandler.handler(method.getParameters(), args);
         for (ParameterMapping parameterMapping : tokenHandler.getParameterMappings()) {
             mapper.addParam(paraMap.get(parameterMapping.getProperty()));
         }

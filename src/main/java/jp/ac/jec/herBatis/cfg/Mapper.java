@@ -13,7 +13,9 @@ public class Mapper {
     // 結果のクラス名
     private String resultClass;
 
-    private List<Object> params = new ArrayList<>();
+    private final List<Object> params = new ArrayList<>();
+    private List<IfOGNL> ifList;
+    private List<Foreach> foreachList;
 
     public Class<?> getSqlTypeClass() {
         return sqlTypeClass;
@@ -45,5 +47,21 @@ public class Mapper {
 
     public List<Object> getParams() {
         return params;
+    }
+
+    public List<IfOGNL> getIfList() {
+        return ifList;
+    }
+
+    public void setIfList(List<IfOGNL> ifList) {
+        this.ifList = ifList;
+    }
+
+    public List<Foreach> getForeachList() {
+        return foreachList;
+    }
+
+    public void setForeachList(List<Foreach> foreachList) {
+        this.foreachList = foreachList;
     }
 }

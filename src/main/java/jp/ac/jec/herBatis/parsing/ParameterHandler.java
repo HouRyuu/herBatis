@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Parameter;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ParameterHandler {
@@ -29,7 +30,7 @@ public class ParameterHandler {
             Param annotation = parameters[i].getAnnotation(Param.class);
             paramType = parameters[i].getType();
             // 基本データ型
-            if (annotation != null && paramType.getPackageName().startsWith("java.lang")) {
+            if (annotation != null && (paramType.getPackageName().startsWith("java.lang") || paramType == List.class)) {
                 paramMap.put(annotation.value(), args[i]);
             }
             // Map

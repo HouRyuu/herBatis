@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class XmlTest {
     private InputStream in;
@@ -42,6 +44,24 @@ public class XmlTest {
     void getById() {
         // 4.SqlSessionでmapperインタフェースの代理実現を生成する
         assert userMapper.xmlGetById(2).getId() == 2;
+    }
+
+    @Test
+    void get() {
+        // 4.SqlSessionでmapperインタフェースの代理実現を生成する
+        UserPO userPO = new UserPO();
+        userPO.setId(2);
+        userPO.setName("abc");
+        assert userMapper.xmlQuery(userPO).getId() == 2;
+    }
+
+    @Test
+    void queryByIds() {
+        // 4.SqlSessionでmapperインタフェースの代理実現を生成する
+        List<Integer> ids = new ArrayList<>();
+        ids.add(1);
+        ids.add(2);
+        assert userMapper.xmlQueryByIds(ids).size() == 2;
     }
 
     @Test

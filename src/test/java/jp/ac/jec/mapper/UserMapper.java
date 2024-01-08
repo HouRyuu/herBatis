@@ -38,6 +38,10 @@ public interface UserMapper {
 
     UserPO xmlGetById(@Param("id") int id);
 
+    List<UserPO> xmlQueryByIds(@Param("ids") List<Integer> ids);
+
+    UserPO xmlQuery(UserPO user);
+
     List<UserPO> xmlFindAll();
 
     int xmlInsert();

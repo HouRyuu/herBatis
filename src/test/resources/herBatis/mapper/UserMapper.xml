@@ -10,6 +10,24 @@
 
     <select id="xmlGetById" resultType="jp.ac.jec.entity.UserPO">
         SELECT * FROM t_user WHERE id = #{id}
+        <if test="name != null">
+            AND name = #{name}
+        </if>
+    </select>
+
+    <select id="xmlQuery" resultType="jp.ac.jec.entity.UserPO">
+        SELECT * FROM t_user WHERE 1 = 1
+        <if test="id != null">
+            AND id = #{id}
+        </if>
+        <if test="name != null">
+            AND name = #{name}
+        </if>
+    </select>
+
+    <select id="xmlQueryByIds" resultType="jp.ac.jec.entity.UserPO">
+        SELECT * FROM t_user WHERE 1 = 1
+        <foreach collection="ids" open="and id in (" close=")" separator=","/>
     </select>
 
     <insert id="xmlInsert">
